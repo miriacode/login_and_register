@@ -2,7 +2,6 @@ from flask_app.config.mysqlconnection import connectToMySQL
 import re
 
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
-#PASSWORD_REGEX = re.compile(r'(?=.*\d)(?=.*[A-Z]).{3,}')
 
 from flask import flash
 
@@ -20,12 +19,6 @@ class User:
     #CREATE
     @classmethod
     def create_user(cls, data):
-        # data = {
-        #     "first_name": "Emilio",
-        #     "last_name": "Navejas",
-        #     "email": "emilio@codingdojo.com"
-        #     "password": "wsd4a5657o876870%#$"%#&#&W//&$"
-        # }
         query = "INSERT INTO users (first_name, last_name, email, password) VALUES (%(first_name)s, %(last_name)s, %(email)s, %(password)s)"
         result = connectToMySQL('registro').query_db(query, data)
         return result
@@ -34,21 +27,23 @@ class User:
     @staticmethod
     def validate_user(user):
         is_valid = True
-        #Validar que mi nombre sea mayor a 2 caracteres
+
         if len(user['first_name']) < 3:
             flash('First name should have at least 3 characters', 'register')
             is_valid = False
-        #Validar que mi apellido sea mayor a 2 caracteres
+
         if len(user['last_name']) < 3:
             flash('Last name should have at least 3 characters', 'register')
             is_valid = False
-        #Valido email con expresiones regulares
+
         if not EMAIL_REGEX.match(user['email']):
             flash('Invalid email', 'register')
             is_valid = False
+            
         if len(user['password']) < 6:
             flash('Password should have at least 6 characters', 'register')
             is_valid = False
+            
         #Bonus ninja:
         if not re.search('[A-Z]', user['password']):
             flash('Invalid password, try including a capital letter', 'register')
@@ -58,12 +53,10 @@ class User:
             flash('Invalid password, try including a number', 'register')
             is_valid = False
 
-
         if user['password'] != user['confirm']:
             flash("Passwords don't match", 'register')
             is_valid = False
         
-        #Consulta si ya existe ese correo
         query = "SELECT * FROM users WHERE email = %(email)s"
         results = connectToMySQL('registro').query_db(query, user)
         if len(results) >= 1:
